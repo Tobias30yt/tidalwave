@@ -12,7 +12,7 @@ bot handles `/verify` through signed Discord webhooks. It needs a Discord applic
 your server ID, a public HTTPS domain and private credentials in `config/auth.local.php`.
 Verified accounts can install enabled full bots through a guarded OAuth2 code grant.
 Full bots must already run separately; this installs them into Discord servers.
-No real credentials or Discord configuration have been supplied or deployed.
+Credentials are configured privately on the server and are never included in Git.
 
 ## Run locally
 
@@ -25,9 +25,8 @@ php -S 127.0.0.1:8080 -t public dev-router.php
 Open http://127.0.0.1:8080. The built-in PHP server and `dev-router.php` are for
 local development only. Production uses Nginx and PHP-FPM.
 
-On this Windows workstation, the verified temporary PHP runtime used during
-development is at `C:\Users\psche\AppData\Local\Temp\tidalwave-php83\php.exe`.
-It is not a project dependency and may disappear when temporary files are cleaned.
+On Windows, use a PHP 8.3 installation with cURL, PDO SQLite and sodium enabled
+when testing account features. PHP runtimes are not included in this repository.
 
 ## Pages and editing
 
@@ -70,8 +69,8 @@ VPS. No architecture-specific application binaries are shipped. The following
 system setup requires an administrator; the application runs as unprivileged
 `tidalwave`, and Git updates run as your deployment user.
 
-1. Push the contents of this `tidalwave` directory to your own Git repository.
-   Do not publish secrets or log files. No remote repository is assumed here.
+1. The source repository is https://github.com/Tobias30yt/tidalwave.
+   Do not publish secrets, local configuration backups, databases or log files.
 2. Install server packages and create the dedicated runtime user:
 
 ```sh
@@ -79,7 +78,7 @@ sudo apt update
 sudo apt install nginx php8.3-fpm php8.3-cli php8.3-opcache php8.3-curl php8.3-sqlite3 php8.3-common git
 sudo adduser --system --group --no-create-home tidalwave
 sudo install -d -o "$USER" -g www-data -m 0755 /var/www/tidalwave
-git clone YOUR_REPOSITORY_URL /var/www/tidalwave
+git clone https://github.com/Tobias30yt/tidalwave.git /var/www/tidalwave
 cd /var/www/tidalwave
 sudo install -d -o tidalwave -g tidalwave -m 0750 storage/logs
 sudo install -d -o tidalwave -g tidalwave -m 0700 storage/auth
@@ -101,6 +100,8 @@ sudo cp deploy/nginx.conf /etc/nginx/sites-available/tidalwave
 sudoedit /etc/nginx/sites-available/tidalwave
 sudo ln -s /etc/nginx/sites-available/tidalwave /etc/nginx/sites-enabled/tidalwave
 sudo cp deploy/logrotate.conf /etc/logrotate.d/tidalwave
+sudo cp deploy/cron.conf /etc/cron.d/tidalwave-auth
+sudo chmod 0644 /etc/cron.d/tidalwave-auth
 sudo php-fpm8.3 -t
 sudo nginx -t
 sudo systemctl reload php8.3-fpm nginx

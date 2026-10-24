@@ -3,6 +3,7 @@
 /.env
 /.env.*
 /config/auth.local.php
+/config/auth.local.php.*
 /storage/auth/*
 !/storage/auth/.gitkeep
 /.runtime/
