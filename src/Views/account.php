@@ -13,6 +13,7 @@
 <?php else: ?>
     <?php if ($notice): ?><div class="account-notice" role="status"><?= e($notice) ?></div><?php endif ?>
     <span class="eyebrow">SIGNED IN WITH DISCORD</span><h2 class="account-name">@<?= e($user['username']) ?></h2><p class="account-id">Discord ID <?= e($user['id']) ?></p>
+    <?php $adminConfig=require dirname(__DIR__,2).'/config/admin.php'; if (AdminStore::allowed($user,$adminConfig)): ?><p><a class="button primary" href="/admin">Open bot control panel <?= icon('arrow') ?></a></p><?php endif ?>
     <?php if ($user['blocked']): ?><div class="review-note"><strong>Account access restricted</strong><p>Please contact TidalWave about verification or installation access.</p></div>
     <?php elseif ($verified): ?><div class="account-notice"><span class="status-dot"></span> Server verification complete</div><p>Your Discord identity is verified. We check your current server membership again before each installation.</p>
     <?php else: ?>

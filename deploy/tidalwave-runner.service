@@ -1,0 +1,24 @@
+[Unit]
+Description=TidalWave bot deployment runner
+After=network-online.target docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=simple
+User=root
+Group=tidalwave
+ExecStartPre=/opt/tidalwave-runner/network.sh
+ExecStart=/usr/bin/python3 /opt/tidalwave-runner/worker.py
+Restart=on-failure
+RestartSec=10
+UMask=0077
+Environment=XTABLES_LOCKFILE=/var/lib/tidalwave-runner/xtables.lock
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/tidalwave/storage/admin /var/lib/tidalwave-runner
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

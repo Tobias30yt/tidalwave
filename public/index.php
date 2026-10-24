@@ -21,6 +21,8 @@ try {
     }
     $path = rtrim($path, '/') ?: '/';
     require dirname(__DIR__).'/src/Controllers/AuthController.php';
+    require dirname(__DIR__).'/src/Controllers/AdminController.php';
+    if (AdminController::dispatch($path)) exit;
     if (AuthController::dispatch($path)) exit;
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
         http_response_code(405); header('Allow: GET, HEAD'); echo 'Method not allowed'; exit;

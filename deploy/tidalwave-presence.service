@@ -1,0 +1,24 @@
+[Unit]
+Description=TidalWave verification bot online presence
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=tidalwave
+Group=tidalwave
+WorkingDirectory=/var/www/tidalwave
+ExecStart=/opt/tidalwave-presence/bin/python /var/www/tidalwave/runner/presence.py
+Restart=on-failure
+RestartSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=192M
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

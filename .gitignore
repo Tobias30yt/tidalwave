@@ -4,6 +4,10 @@
 /.env.*
 /config/auth.local.php
 /config/auth.local.php.*
+/config/admin.local.php
+/config/admin.local.php.*
+/storage/admin/
+__pycache__/
 /storage/auth/*
 !/storage/auth/.gitkeep
 /.runtime/

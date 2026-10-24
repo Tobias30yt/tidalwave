@@ -8,6 +8,7 @@ final class PageController {
             '/projects' => ['projects', 'Projects'], '/api' => ['api', 'TidalWave API'],
             '/contact' => ['contact', 'Contact'], '/legal' => ['legal', 'Legal Center'],
             '/account' => ['account', 'Your Account'],
+            '/admin' => ['admin', 'Bot Control'],
             '/legal/privacy' => ['placeholder', 'TidalWave Privacy Policy'],
             '/legal/terms' => ['placeholder', 'TidalWave Terms of Service'],
             '/legal/notice' => ['placeholder', 'Legal Notice / Impressum'],

@@ -14,6 +14,14 @@ Verified accounts can install enabled full bots through a guarded OAuth2 code gr
 Full bots must already run separately; this installs them into Discord servers.
 Credentials are configured privately on the server and are never included in Git.
 
+## Bot control panel and online presence
+
+The optional [bot control panel](docs/BOT-PANEL.md) gives one configured Discord account
+access to source ZIP uploads, private environment settings, installation commands,
+Node/Python/Java deployments, logs, and start/stop/restart controls. A separate Docker
+worker runs bots with resource limits. The included gateway presence service keeps
+the verification bot online while the PHP endpoint continues handling `/verify`.
+
 ## Run locally
 
 From this directory, with PHP 8.3 on your PATH:
