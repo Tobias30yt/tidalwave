@@ -22,6 +22,10 @@ Node/Python/Java deployments, logs, and start/stop/restart controls. A separate 
 worker runs bots with resource limits. The included gateway presence service keeps
 the verification bot online while the PHP endpoint continues handling `/verify`.
 
+The [community features](docs/COMMUNITY.md) add automatically published hosted bots,
+projects with GitHub import and release downloads, account administration, and a
+Discord-linked question-and-answer forum. `/verify` now works without a code.
+
 ## Run locally
 
 From this directory, with PHP 8.3 on your PATH:

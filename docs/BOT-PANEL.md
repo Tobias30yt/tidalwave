@@ -37,7 +37,10 @@ host shell. ZIPs are validated both by PHP and the worker, rejecting traversal, 
 encrypted entries, secret files, and oversized expansion. Each bot gets a separate
 container without host mounts, published ports, devices, or elevated runtime capabilities.
 Runtime is uid 1000 with no-new-privileges, 512 MB RAM, 1 CPU, and 128 processes.
-Setup is limited to 1 GB RAM, 1 CPU, and 256 processes. Four bot records are allowed.
+Setup is limited to 1 GB RAM, 1 CPU, and 256 processes. There is no fixed bot-count limit;
+the server's actual RAM, CPU, and disk still limit concurrent workloads. A successful
+deployment automatically publishes the bot name, description, and hosting status on `/bots`.
+Drafts, source archives, installation commands, logs, and environment values stay private.
 The dedicated bridge blocks private network ranges, cloud metadata, and host input.
 Logs rotate at 2 MB with two files. The worker displays the last 32 KB and redacts saved
 environment values; bot authors must still avoid printing encoded/transformed secrets.
@@ -57,7 +60,7 @@ as the website user, then copy `runner/worker.py` and
 `deploy/bot-network.sh` to `/opt/tidalwave-runner/` as root-owned files (0644 and 0755).
 Install `deploy/tidalwave-runner.service` into `/etc/systemd/system/`, create
 `/var/lib/tidalwave-runner` root-owned mode 0700, then enable the service.
-Increase only the app's PHP pool upload limits to 25M/27M and its nginx location
+Increase only the app's PHP pool upload limits to 25M/52M and its nginx location
 `/admin/save` body limit to 27m. The admin storage directory remains mode 0700.
 
 The runner polls SQLite every two seconds, records changes in an audit table, and marks

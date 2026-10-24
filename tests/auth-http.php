@@ -64,8 +64,7 @@ try {
     expect_http(send_http('/bots/synatra/install','POST','csrf='.str_repeat('c',64))[0]===403,'Unverified install');
     expect_http(send_http('/auth/verify-code','POST','csrf='.str_repeat('c',64))[0]===303,'Code generation');
     [$status,,$body]=send_http('/account');
-    preg_match('/<code>([A-F0-9-]{19})<\/code>/',$body,$m); $code=$m[1] ?? '';
-    expect_http(strlen($code)===19,'Code display');
+    expect_http(str_contains($body,'<code>/verify</code>'),'Code-free command displayed');
     $ping=['application_id'=>$config['client_id'],'type'=>1];
     expect_http(send_http('/discord/interactions','POST','{}',['Content-Type: application/json'])[0]===401,'Unsigned request');
     expect_http(signed_http($ping,$secret,0,true)[0]===401,'Tampered body');
@@ -74,7 +73,7 @@ try {
     expect_http($pingResponse[0]===200 && json_decode($pingResponse[2],true)===['type'=>1],'Signed PING');
     $payload=['application_id'=>$config['client_id'],'id'=>'666666666666666666','type'=>2,
         'guild_id'=>$config['guild_id'],'member'=>['user'=>['id'=>$user['id']]],
-        'data'=>['name'=>'verify','options'=>[['name'=>'code','type'=>3,'value'=>$code]]]];
+        'data'=>['name'=>'verify','options'=>[]]];
     $response=signed_http($payload,$secret);
     expect_http($response[0]===200 && json_decode($response[2],true)['data']['flags']===64,'Ephemeral verification response');
     expect_http(str_contains(send_http('/account')[2],'Server verification complete'),'Verified UI');

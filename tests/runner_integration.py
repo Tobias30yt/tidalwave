@@ -35,6 +35,7 @@ with tempfile.TemporaryDirectory(prefix='tw-runner-test-') as tmp:
             runner.db.execute('INSERT INTO bots(id,name,runtime,start_command,install_command,environment,source,updated_at,created_at) VALUES(?,?,?,?,?,?,?,?,?)',(bot_id,'Synthetic '+runtime,runtime,start,install,'TOKEN=synthetic-secret',source_id,int(time.time()),int(time.time())))
             bot=dict(runner.db.execute('SELECT * FROM bots WHERE id=?',(bot_id,)).fetchone())
             runner.deploy(bot)
+            assert runner.db.execute('SELECT published_at FROM bots WHERE id=?',(bot_id,)).fetchone()[0] is not None
             container=w.inspect('tw-bot-'+bot_id)
             assert container['State']['Running']
             assert container['Config']['User']=='1000:1000'

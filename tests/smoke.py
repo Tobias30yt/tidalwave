@@ -11,7 +11,7 @@ from urllib.request import Request, urlopen
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8080').rstrip('/')
 ROOT = Path(__file__).resolve().parents[1]
-ROUTES = ['/', '/about', '/bots', '/projects', '/api', '/contact', '/account', '/legal',
+ROUTES = ['/', '/about', '/bots', '/projects', '/forum', '/api', '/contact', '/account', '/legal',
           '/legal/privacy', '/legal/terms', '/legal/notice',
           '/legal/synatra/privacy', '/legal/synatra/terms']
 
@@ -57,6 +57,9 @@ for route, page in pages.items():
     for link in page.links:
         target = urlsplit(urljoin(BASE + route, link))
         if target.netloc != urlsplit(BASE).netloc: continue
+        if re.fullmatch(r'/forum/thread/[0-9]+|/projects/download/[a-f0-9]{32}', target.path):
+            assert request(target.path)[0] == 200, ('dynamic public link', link)
+            continue
         assert target.path in pages, (route, 'unrecognized route', link)
         if target.fragment:
             assert unquote(target.fragment) in pages[target.path].ids, (route, 'broken fragment', link)

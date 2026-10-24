@@ -66,6 +66,12 @@ final class AuthStore {
         return !$user['blocked'] && $user['verified_guild'] === $config['guild_id']
             && (int)$user['verified_at'] > time() - (int)$config['verification_lifetime'];
     }
+    public function verifyIdentity(string $id,string $guild): bool {
+        $this->limit('verify:'.$id,10,600);
+        $updated=$this->query('UPDATE users SET verified_at=?,verified_guild=? WHERE id=? AND blocked=0 AND NOT EXISTS(SELECT 1 FROM blocked_accounts WHERE id=?)',[time(),$guild,$id,$id]);
+        if($updated->rowCount()) $this->query('DELETE FROM challenges WHERE user_id=?',[$id]);
+        return $updated->rowCount()===1;
+    }
     public function revoke(string $id, bool $block = false): void {
         $this->db->beginTransaction();
         try {
@@ -73,6 +79,7 @@ final class AuthStore {
             if ($block) $this->query('INSERT OR IGNORE INTO blocked_accounts(id) VALUES(?)',[$id]);
             else $this->query('DELETE FROM blocked_accounts WHERE id=?',[$id]);
             $this->query('DELETE FROM challenges WHERE user_id=?', [$id]);
+            if($block) $this->query('UPDATE users SET session_key=? WHERE id=?',[bin2hex(random_bytes(16)),$id]);
             $this->db->commit();
         } catch (Throwable $e) { $this->db->rollBack(); throw $e; }
     }

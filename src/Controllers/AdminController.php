@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/Services/Auth/bootstrap.php';
 require_once dirname(__DIR__).'/Services/AdminStore.php';
+require_once __DIR__.'/AdminContentController.php';
 final class AdminController {
     public static function dispatch(string $path): bool {
         if ($path!=='/admin' && !str_starts_with($path,'/admin/')) return false;
@@ -19,8 +20,9 @@ final class AdminController {
             if (!$user || !hash_equals($user['session_key'],$_SESSION['user_key']??'')) throw new AuthError(401,'Sign in with the administrator’s Discord account first.');
             if (!AdminStore::allowed($user,$admin)) throw new AuthError(403,'This panel is available only to the configured administrator.');
             $store=new AdminStore($admin);
+            if($method==='POST') { AuthSession::csrf($_POST['csrf']??null);$accounts->limit('admin:'.$user['id'],60,600); }
+            if(AdminContentController::dispatch($path,$method,$store,$accounts,$user,$admin))return true;
             if ($method==='POST') {
-                AuthSession::csrf($_POST['csrf']??null); $accounts->limit('admin:'.$user['id'],60,600);
                 if ($path==='/admin/save') {
                     $id=$store->save(($_POST['id']??'')?:null,$_POST,$_FILES['source']??null,$user['id']);
                     $_SESSION['admin_notice']='Saved. Choose Deploy saved version to apply the source, commands, and environment.';

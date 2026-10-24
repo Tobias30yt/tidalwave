@@ -1,9 +1,10 @@
 <section class="page-hero container admin-hero"><span class="eyebrow">TIDALWAVE / CONTROL ROOM</span><h1>Your bots.<br>Your control<span>.</span></h1><p class="lead">Upload, configure, and run your Discord bots in one place.</p></section>
+<?php if(empty($panelError))component('admin-nav',compact('path')); ?>
 <section class="container admin-shell">
 <?php if (!empty($panelError)): ?>
     <div class="account-panel"><h2>Administrator access</h2><p role="alert"><?= e($panelError) ?></p><a class="button primary" href="/account">Your Discord account</a> <a class="button secondary" href="/admin">Back to panel</a></div>
 <?php else: ?>
-<aside class="admin-sidebar"><span class="eyebrow">@<?= e($user['username']) ?></span><h2>Bot fleet <span class="admin-count"><?= count($managed) ?>/4</span></h2><p class="admin-worker <?= $workerOnline?'is-online':'' ?>"><?= $workerOnline?'● Runner connected':'○ Runner unavailable — jobs will wait' ?></p>
+<aside class="admin-sidebar"><span class="eyebrow">@<?= e($user['username']) ?></span><h2>Bot fleet <span class="admin-count"><?= count($managed) ?> bots</span></h2><p class="admin-worker <?= $workerOnline?'is-online':'' ?>"><?= $workerOnline?'● Runner connected':'○ Runner unavailable — jobs will wait' ?></p><p class="admin-help">No fixed bot limit. Available server resources determine how many can run together.</p>
 <a class="button primary" href="/admin?bot=new">+ Create bot</a>
 <nav aria-label="Managed bots" class="admin-bot-list"><?php foreach ($managed as $item): ?><a href="/admin?bot=<?= e($item['id']) ?>" <?= ($bot['id']??'')===$item['id']?'aria-current="page"':'' ?>><strong><?= e($item['name']) ?></strong><span><?= e(strtoupper($item['runtime'])) ?> · <?= e($item['status']) ?></span></a><?php endforeach ?></nav><a class="text-link" href="/account">← Your account</a></aside>
 <div class="admin-workspace">
@@ -15,6 +16,7 @@
 <fieldset <?= $busy?'disabled':'' ?>><legend>01 / Source & runtime</legend><div class="admin-field-grid">
 <label>Bot name<input name="name" maxlength="80" required placeholder="My Discord bot" value="<?= e($bot['name']??'') ?>"></label>
 <label>Runtime<select name="runtime"><?php foreach(['node'=>'Node.js 22','python'=>'Python 3','java'=>'Java 17'] as $key=>$label): ?><option value="<?= $key ?>" <?= ($bot['runtime']??'node')===$key?'selected':'' ?>><?= $label ?></option><?php endforeach ?></select></label></div>
+<label>Public description<textarea name="description" rows="3" maxlength="1200" placeholder="What does your bot do?"><?= e($bot['description']??'') ?></textarea><small>After its first successful deployment, the bot name and description appear on the public Bots page. Source, commands, and secrets stay private.</small></label>
 <label class="admin-upload">Source archive<input type="file" name="source" accept=".zip,application/zip" <?= $bot?'':'required' ?>><small>ZIP up to 25 MB, 100 MB extracted. Include source files; leave out .git, .env, node_modules, and virtual environments. A single enclosing folder is removed automatically. <?= $bot?'Leave empty to keep the current source.':'' ?></small></label>
 <label>Start command<input name="start_command" maxlength="1000" required placeholder="node index.js" value="<?= e($bot['start_command']??'') ?>"><small>Examples: node index.js · python bot.py · java -jar bot.jar. Arguments are supported; shell operators are not.</small></label>
 </fieldset><fieldset <?= $busy?'disabled':'' ?>><legend>02 / First-time installation</legend>

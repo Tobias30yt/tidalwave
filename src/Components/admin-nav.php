@@ -1,0 +1,1 @@
+<nav class="container admin-tabs" aria-label="Administration"><a href="/admin" <?= $path==='/admin'?'aria-current="page"':'' ?>>Bots</a><a href="/admin/projects" <?= $path==='/admin/projects'?'aria-current="page"':'' ?>>Projects</a><a href="/admin/users" <?= $path==='/admin/users'?'aria-current="page"':'' ?>>Users</a><a href="/forum">Forum moderation ↗</a></nav>

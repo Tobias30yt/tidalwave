@@ -17,10 +17,10 @@
     <?php if ($user['blocked']): ?><div class="review-note"><strong>Account access restricted</strong><p>Please contact TidalWave about verification or installation access.</p></div>
     <?php elseif ($verified): ?><div class="account-notice"><span class="status-dot"></span> Server verification complete</div><p>Your Discord identity is verified. We check your current server membership again before each installation.</p>
     <?php else: ?>
-        <h3>Verify in our Discord server.</h3><p>Generate a code, then use <code>/verify code:YOUR-CODE</code> in the verification server while signed in to the same Discord account.</p>
+        <h3>Verify in our Discord server.</h3><p>Send <code>/verify</code> in the verification server using this Discord account. No code is needed: Discord securely identifies your account.</p>
         <?php if ($invite=safe_url($config['guild_invite_url'])): ?><a class="text-link" href="<?= e($invite) ?>">Open the verification server <?= icon('diagonal') ?></a><?php endif ?>
-        <?php if ($challenge): ?><div class="verification-code"><span class="eyebrow">YOUR ONE-TIME CODE</span><code><?= e($challenge['code']) ?></code><small>Expires in 10 minutes from generation. A new code replaces this one.</small></div><?php endif ?>
-        <div class="button-row"><form method="post" action="/auth/verify-code"><input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>"><button class="button primary" type="submit"><?= $challenge ? 'Generate a new code' : 'Generate verification code' ?></button></form><a class="button secondary" href="/account">Refresh verification <?= icon('arrow') ?></a></div>
+        <div class="verification-code"><span class="eyebrow">IN OUR DISCORD SERVER</span><code>/verify</code></div>
+        <a class="button secondary" href="/account">Refresh verification <?= icon('arrow') ?></a>
     <?php endif ?>
     <div class="account-installations"><h3>Your bot access</h3><?php foreach ($bots as $bot): ?>
         <div class="account-bot"><div><strong><?= e($bot['name']) ?></strong><p><?= !empty($config['installations'][$bot['id']]['enabled']) ? 'Server installation' : 'Installation not yet available' ?></p></div>
@@ -30,5 +30,5 @@
     <details><summary>Delete my website account</summary><p>This removes your website profile, verification and installation records. It does not remove bots from Discord servers or revoke Discord-side authorizations. You can manage those in Discord.</p><form method="post" action="/auth/delete"><input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>"><label class="delete-confirm"><input type="checkbox" name="confirm" value="delete" required> Delete my TidalWave account and verification</label><button class="button secondary" type="submit">Delete account</button></form></details></div>
 <?php endif ?>
 </div>
-<aside class="account-guide"><span class="eyebrow">THREE STEPS TO GET STARTED</span><ol><li><span>01</span><div><h3>Connect your account</h3><p>Sign in directly with Discord. Your password stays with Discord.</p></div></li><li><span>02</span><div><h3>Verify in our server</h3><p>Use your one-time code with the TidalWave verification bot. Codes only work for the account that requested them.</p></div></li><li><span>03</span><div><h3>Add an available bot</h3><p>Choose a server in Discord. You’ll need permission to add apps there.</p></div></li></ol><a class="text-link" href="/contact">Need a hand? <?= icon('arrow') ?></a></aside>
+<aside class="account-guide"><span class="eyebrow">THREE STEPS TO GET STARTED</span><ol><li><span>01</span><div><h3>Connect your account</h3><p>Sign in directly with Discord. Your password stays with Discord.</p></div></li><li><span>02</span><div><h3>Verify in our server</h3><p>Send /verify in our Discord server. Discord confirms the account that sent the command.</p></div></li><li><span>03</span><div><h3>Add an available bot</h3><p>Choose a server in Discord. You’ll need permission to add apps there.</p></div></li></ol><a class="text-link" href="/contact">Need a hand? <?= icon('arrow') ?></a></aside>
 </section>

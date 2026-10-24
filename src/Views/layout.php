@@ -9,7 +9,7 @@
     <meta property="og:title" content="<?= e($title) ?> · TidalWave"><meta property="og:description" content="<?= e($description) ?>"><meta property="og:type" content="website"><meta property="og:site_name" content="TidalWave">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/site.css?v=<?= e($app['asset_version']) ?>">
-    <?php if($view==='admin'): ?><link rel="stylesheet" href="/assets/css/admin.css?v=<?= e($app['asset_version']) ?>"><?php endif ?>
+    <?php if(str_starts_with($view,'admin') || str_starts_with($view,'forum')): ?><link rel="stylesheet" href="/assets/css/admin.css?v=<?= e($app['asset_version']) ?>"><?php endif ?>
     <script src="/assets/js/site.js?v=<?= e($app['asset_version']) ?>" defer></script>
 </head>
 <body class="page-<?= e($view) ?>">

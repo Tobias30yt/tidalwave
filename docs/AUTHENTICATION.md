@@ -1,10 +1,9 @@
 # Discord sign-in, server verification, and bot installation
 
 The website now contains the verification bot itself. It receives Discord-signed
-HTTP interactions through PHP at `/discord/interactions`. No Node process,
-Gateway connection, message-content intent, or separate bot hosting is needed.
-It may appear offline in Discord because it does not maintain Gateway presence;
-its slash command still works through the interactions endpoint.
+HTTP interactions through PHP at `/discord/interactions`. The separate
+`tidalwave-presence` gateway service keeps it online; signed commands continue
+to be handled by PHP. No message-content intent is needed.
 
 Discord is the identity provider. Email and Google fallback were not needed for
 this implementation. Either provider would still need a separate Discord link to
@@ -16,13 +15,13 @@ prove control of a Discord account; they must not bypass verification.
    Discord's `identify` scope. The callback checks its single-use, session-bound
    state and Discord issuer, then retrieves `/users/@me`. The permanent Discord
    ID is the identity key; a rename does not create a new identity.
-2. They generate a random 64-bit verification code, valid for ten minutes. The
-   database stores its SHA-256 digest, not its plaintext. The private session
-   keeps the current display value until expiry/verification.
-3. In your verification server, the same account uses `/verify code:XXXX-...`.
+2. They sign in with their Discord account on the website, then open the verification server.
+3. The same account uses `/verify` with no arguments.
    Discord's Ed25519 signature, timestamp, application ID, guild ID and member ID
    must all match. The response is ephemeral. DMs and other servers are rejected.
-   Codes are consumed atomically and interaction replays cannot repeat a mutation.
+   The signed member ID must match an existing, unblocked website account.
+   Interaction replays cannot repeat a mutation. The old code endpoint remains
+   available for compatibility, but the website and registered command no longer require it.
 4. Verification lasts 30 days. Before BOTH initiating and completing a full-bot
    install, the server checks verification and current membership in your server,
    including membership screening. Discord/network errors deny installation.

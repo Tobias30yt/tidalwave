@@ -265,6 +265,7 @@ class Runner:
                     raise
                 self.remove(backup,bot_id)
                 self.log(bot,'Saved revision deployed successfully.\n','running')
+                self.db.execute('UPDATE bots SET published_at=COALESCE(published_at,?) WHERE id=?',(int(time.time()),bot_id))
                 self.cleanup_images(bot_id,keep={image,prepared})
             finally:
                 self.remove(staged,bot_id)
@@ -306,6 +307,7 @@ class Runner:
 
     def refresh(self):
         for row in self.db.execute('SELECT * FROM bots').fetchall():
+            self.heartbeat()
             bot=dict(row); name='tw-bot-'+identifier(bot['id']); info=self.owned(name,bot['id'])
             if not info:
                 continue

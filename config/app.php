@@ -6,5 +6,5 @@ return [
     // Set only verified official profile URLs (HTTPS); null hides the link.
     'github_url' => null,
     'discord_url' => null,
-    'asset_version' => '1.2.0',
+    'asset_version' => '1.3.0',
 ];

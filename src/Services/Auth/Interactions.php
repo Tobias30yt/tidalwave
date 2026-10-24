@@ -20,7 +20,13 @@ final class DiscordInteractions {
         if ($insert->rowCount()!==1) return $this->reply('This request was already processed. Refresh your TidalWave account page.');
         $code=null;
         foreach (($payload['data']['options'] ?? []) as $option) if (($option['name'] ?? null)==='code' && ($option['type'] ?? null)===3) $code=$option['value'] ?? null;
-        if (!is_string($code) || strlen($code)>32) return $this->reply('Enter the one-time code shown on your TidalWave account page.');
+        if ($code===null) {
+            try { $verified=$this->store->verifyIdentity($userId,$this->config['guild_id']); }
+            catch(AuthError $e) { return $this->reply($e->getMessage()); }
+            return $this->reply($verified ? 'Verified! Your Discord account is linked to TidalWave. Refresh your account page: '.$this->config['origin'].'/account'
+                : 'Sign in on '.$this->config['origin'].'/account with this Discord account first, then run /verify again. Restricted accounts cannot verify.');
+        }
+        if (!is_string($code) || strlen($code)>32) return $this->reply('Run /verify without a code.');
         try { $verified=$this->store->verify($userId,$this->config['guild_id'],$code); }
         catch (AuthError $e) { return $this->reply($e->getMessage()); }
         return $this->reply($verified ? 'Your Discord account is verified with TidalWave. Return to the website and refresh your account page.' : 'That code is expired, already used, or belongs to a different Discord account. Generate a new code on the website while signed in as this account.');

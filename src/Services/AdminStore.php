@@ -18,6 +18,16 @@ final class AdminStore {
                 state TEXT NOT NULL DEFAULT "queued",created_at INTEGER NOT NULL,finished_at INTEGER);
             CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT,actor TEXT NOT NULL,action TEXT NOT NULL,bot_id TEXT NOT NULL,created_at INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS health (id INTEGER PRIMARY KEY CHECK(id=1),heartbeat INTEGER NOT NULL);');
+        $this->db->exec('BEGIN IMMEDIATE');
+        try {
+            $columns=array_column($this->query('PRAGMA table_info(bots)')->fetchAll(PDO::FETCH_ASSOC),'name');
+            if(!in_array('description',$columns,true)) $this->db->exec("ALTER TABLE bots ADD COLUMN description TEXT NOT NULL DEFAULT ''");
+            if(!in_array('published_at',$columns,true)) {
+                $this->db->exec('ALTER TABLE bots ADD COLUMN published_at INTEGER');
+                $this->db->exec("UPDATE bots SET published_at=updated_at WHERE status='running' OR EXISTS(SELECT 1 FROM jobs WHERE jobs.bot_id=bots.id AND action='deploy' AND state='done')");
+            }
+            $this->db->exec('COMMIT');
+        } catch(Throwable $e) { $this->db->exec('ROLLBACK'); throw $e; }
     }
     public function query(string $sql,array $args=[]): PDOStatement { $s=$this->db->prepare($sql); $s->execute($args); return $s; }
     public static function allowed(?array $user,array $config): bool {
@@ -77,13 +87,15 @@ final class AdminStore {
         try {
             $this->db->exec('BEGIN IMMEDIATE'); $old=$id ? $this->bot($id) : null;
             if ($id && $this->busy($id)) throw new AuthError(409,'Wait for the current job before editing this bot.');
-            if (!$id && (int)$this->query('SELECT count(*) FROM bots')->fetchColumn()>=$this->config['max_bots']) throw new AuthError(409,'The server currently allows '.$this->config['max_bots'].' bots.');
             $source=$newSource??($old['source']??null);
             if (!$source) throw new AuthError(400,'Upload the bot source as a ZIP.');
             $env=isset($input['clear_environment']) ? '' : (($input['environment']??'')!=='' ? self::environment($input['environment']) : ($old['environment']??''));
             $id??=bin2hex(random_bytes(16));
             if ($old) $this->query('UPDATE bots SET name=?,runtime=?,start_command=?,install_command=?,environment=?,source=?,revision=revision+1,updated_at=? WHERE id=?',[$name,$runtime,$start,$install,$env,$source,time(),$id]);
             else $this->query('INSERT INTO bots(id,name,runtime,start_command,install_command,environment,source,updated_at,created_at) VALUES(?,?,?,?,?,?,?,?,?)',[$id,$name,$runtime,$start,$install,$env,$source,time(),time()]);
+            $description=trim((string)($input['description']??($old['description']??'')));
+            if(mb_strlen($description)>1200) throw new AuthError(400,'The public description is limited to 1200 characters.');
+            $this->query('UPDATE bots SET description=? WHERE id=?',[$description,$id]);
             $this->audit($actor,$old?'save':'create',$id); $this->db->exec('COMMIT'); return $id;
         } catch(Throwable $e) {
             try { $this->db->exec('ROLLBACK'); } catch(Throwable) {}
@@ -101,5 +113,11 @@ final class AdminStore {
             $this->audit($actor,$action,$id); $this->db->exec('COMMIT');
         } catch(Throwable $e) { $this->db->exec('ROLLBACK'); throw $e; }
     }
-    private function audit(string $actor,string $action,string $id): void { $this->query('INSERT INTO audit(actor,action,bot_id,created_at) VALUES(?,?,?,?)',[$actor,$action,$id,time()]); }
+    public function audit(string $actor,string $action,string $id): void { $this->query('INSERT INTO audit(actor,action,bot_id,created_at) VALUES(?,?,?,?)',[$actor,$action,$id,time()]); }
+    public function publicBots(): array {
+        $rows=$this->query('SELECT id,name,description,runtime,status FROM bots WHERE published_at IS NOT NULL ORDER BY published_at DESC')->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn($b)=>['id'=>$b['id'],'name'=>$b['name'],'description'=>$b['description']?:'A Discord bot hosted by TidalWave.',
+            'icon'=>'/favicon.svg','features'=>[ucfirst($b['runtime']),'Hosted on TidalWave'],'status'=>$b['status']==='running'?'Running':'Hosted',
+            'documentation_url'=>null,'privacy_url'=>'/legal/privacy','terms_url'=>'/legal/terms','hosted'=>true],$rows);
+    }
 }
