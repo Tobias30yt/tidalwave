@@ -1,0 +1,1 @@
+<section class="container empty-state error-page"><span class="eyebrow">404 / UNCHARTED WATERS</span><h1>This wave<br>went another way<span>.</span></h1><p>We couldn’t find that page. Let’s get you back to familiar waters.</p><a class="button primary" href="/">Return to Home <?= icon('arrow') ?></a></section>

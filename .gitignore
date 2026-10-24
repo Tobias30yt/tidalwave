@@ -1,0 +1,12 @@
+/storage/logs/*
+!/storage/logs/.gitkeep
+/.env
+/.env.*
+/config/auth.local.php
+/storage/auth/*
+!/storage/auth/.gitkeep
+/.runtime/
+/tests/output/
+*.zip
+.DS_Store
+Thumbs.db
