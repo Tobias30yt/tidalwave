@@ -214,17 +214,18 @@ class Runner:
             try:
                 # Prepare ownership in a separate container before dropping runtime privileges.
                 prep = 'tw-prep-'+bot_id
-                self.remove(prep,bot_id)
-                docker('create','--name',prep,'--label','tw.managed='+bot_id,'--network','none',
-                       '--memory','128m','--pids-limit','32',image,'/bin/sh','-c','chown -R 1000:1000 /app')
-                try:
-                    docker('start','-a',prep,timeout=60)
-                    if inspect(prep)['State']['ExitCode']!=0:
-                        raise RuntimeError('Could not prepare source permissions')
-                    prepared = image+'-ready'
-                    docker('commit',prep,prepared,timeout=120)
-                finally:
+                prepared = image+'-ready'
+                if docker('image','inspect',prepared,check=False).returncode:
                     self.remove(prep,bot_id)
+                    docker('create','--name',prep,'--label','tw.managed='+bot_id,'--network','none',
+                           '--memory','128m','--pids-limit','32',image,'/bin/sh','-c','chown -R 1000:1000 /app')
+                    try:
+                        docker('start','-a',prep,timeout=60)
+                        if inspect(prep)['State']['ExitCode']!=0:
+                            raise RuntimeError('Could not prepare source permissions')
+                        docker('commit',prep,prepared,timeout=120)
+                    finally:
+                        self.remove(prep,bot_id)
                 # No host binds, devices, ports, Docker socket, or privileged mode are exposed.
                 docker('create','--name',staged,'--label','tw.managed='+bot_id,'--label','tw.revision='+str(bot['revision']),
                        '--network',NETWORK,'--user','1000:1000','--cap-drop','ALL','--security-opt','no-new-privileges',

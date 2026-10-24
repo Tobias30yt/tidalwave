@@ -52,7 +52,8 @@ Install Docker and Python 3. Build `tidalwave-runtime:v1` with
 `docker build -f deploy/bot-runtime.Dockerfile -t tidalwave-runtime:v1 .`.
 Create `config/admin.local.php`, owned root:tidalwave mode 0640, returning
 `['owner_id' => 'YOUR_DISCORD_USER_ID']`. Never configure access by username.
-Initialize `AdminStore` as the website user, then copy `runner/worker.py` and
+Create `storage/admin` owned tidalwave:tidalwave mode 0700. Initialize `AdminStore`
+as the website user, then copy `runner/worker.py` and
 `deploy/bot-network.sh` to `/opt/tidalwave-runner/` as root-owned files (0644 and 0755).
 Install `deploy/tidalwave-runner.service` into `/etc/systemd/system/`, create
 `/var/lib/tidalwave-runner` root-owned mode 0700, then enable the service.

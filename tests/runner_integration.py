@@ -51,6 +51,7 @@ with tempfile.TemporaryDirectory(prefix='tw-runner-test-') as tmp:
                 runner.deploy(bot)
                 # Dependencies must remain available on cached redeploy.
                 assert w.inspect('tw-bot-'+bot_id)['State']['Running']
+                assert w.inspect('tw-bot-'+bot_id)['Image']==original_image
                 bad=dict(bot);bad['install_command']='exit 17'
                 try: runner.deploy(bad)
                 except RuntimeError: pass
