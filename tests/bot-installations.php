@@ -31,4 +31,5 @@ $merged=$service->merge($auth+['installations'=>['synatra'=>['enabled'=>true]]])
 $store->query('UPDATE bots SET published_at=NULL WHERE id=?',[$id]);check($service->credentials($id)===null,'Draft invitation unavailable');$store->query('UPDATE bots SET published_at=? WHERE id=?',[time(),$id]);
 $service->save($id,[],'owner',$discord);check($service->credentials($id)===null,'Disabled invitation unavailable');
 $store->query('UPDATE bots SET name=? WHERE id=?',['Synatra',$id]);denied(fn()=>$service->save($id,$input,'owner',$discord),403);
+$store->query('DELETE FROM bots WHERE id=?',[$id]);check(!$store->query('SELECT 1 FROM bot_installations WHERE bot_id=?',[$id])->fetchColumn(),'Deleting a bot removes its invitation credentials');
 echo "$checks bot installation checks passed.\n";

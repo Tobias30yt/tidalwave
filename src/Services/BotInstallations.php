@@ -3,6 +3,8 @@ declare(strict_types=1);
 final class BotInstallations {
     public function __construct(private AdminStore $store,private array $auth){
         $store->db->exec('CREATE TABLE IF NOT EXISTS bot_installations(bot_id TEXT PRIMARY KEY,client_id TEXT NOT NULL,secret TEXT NOT NULL,permissions TEXT NOT NULL,enabled INTEGER NOT NULL DEFAULT 0)');
+        // The runner uses a separate SQLite connection; a trigger also works when FK checks are off.
+        $store->db->exec('CREATE TRIGGER IF NOT EXISTS delete_bot_installation AFTER DELETE ON bots BEGIN DELETE FROM bot_installations WHERE bot_id=OLD.id; END');
     }
     private function key(): string { return hash_hkdf('sha256',$this->auth['app_key'],SODIUM_CRYPTO_SECRETBOX_KEYBYTES,'tidalwave-bot-installations'); }
     public function settings(string $id): ?array {
