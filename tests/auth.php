@@ -9,7 +9,7 @@ function denied(callable $action,int $status): void {
 }
 $directory=__DIR__.'/output/auth-'.bin2hex(random_bytes(5));
 $config=['client_id'=>'111111111111111111','guild_id'=>'222222222222222222','verification_lifetime'=>2592000,
-    'bot_token'=>'synthetic-token','installations'=>['synatra'=>['enabled'=>true,'client_id'=>'333333333333333333',
+    'bot_token'=>'synthetic-token','installations'=>['example-bot'=>['enabled'=>true,'client_id'=>'333333333333333333',
     'client_secret'=>'synthetic-secret','bot_token'=>'synthetic-full-bot','permissions'=>'0']]];
 $store=new AuthStore($directory,str_repeat('a',64));
 $a='444444444444444444'; $b='555555555555555555';
@@ -71,16 +71,16 @@ class FakeDiscord extends DiscordClient {
     }
 }
 $fake=new FakeDiscord(); $gate=new InstallGate($store,$fake,$config);
-denied(fn()=>$gate->check($b,'synatra'),403);
+denied(fn()=>$gate->check($b,'example-bot'),403);
 check($fake->calls===[],'Unverified request reached Discord');
 denied(fn()=>$gate->check($a,'unknown'),409);
-$gate->check($a,'synatra');
+$gate->check($a,'example-bot');
 check(count($fake->calls)===2,'Gate did not check membership and application');
-$fake->grant=false; denied(fn()=>$gate->check($a,'synatra'),503); $fake->grant=true;
-$fake->isMember=false; denied(fn()=>$gate->check($a,'synatra'),403); $fake->isMember=true;
-$fake->unavailable=true; denied(fn()=>$gate->check($a,'synatra'),503); $fake->unavailable=false;
+$fake->grant=false; denied(fn()=>$gate->check($a,'example-bot'),503); $fake->grant=true;
+$fake->isMember=false; denied(fn()=>$gate->check($a,'example-bot'),403); $fake->isMember=true;
+$fake->unavailable=true; denied(fn()=>$gate->check($a,'example-bot'),503); $fake->unavailable=false;
 $store->query('UPDATE users SET verified_at=? WHERE id=?',[time()-2592001,$a]);
-denied(fn()=>$gate->check($a,'synatra'),403);
+denied(fn()=>$gate->check($a,'example-bot'),403);
 $oldSessionKey=$store->user($b)['session_key'];
 $store->query('DELETE FROM users WHERE id=?',[$b]);
 $recreated=$store->signIn(['id'=>$b,'username'=>'other-user']);
@@ -95,14 +95,14 @@ $store->limit('test-rate',1,600); denied(fn()=>$store->limit('test-rate',1,600),
 
 $_SESSION=['csrf'=>str_repeat('b',64)];
 AuthSession::csrf(str_repeat('b',64)); denied(fn()=>AuthSession::csrf('wrong'),403);
-$state=AuthSession::state('install:synatra',$a);
-denied(fn()=>AuthSession::consumeState($state,'install:synatra',$b),403);
+$state=AuthSession::state('install:example-bot',$a);
+denied(fn()=>AuthSession::consumeState($state,'install:example-bot',$b),403);
 $state=AuthSession::state('login',null);
 AuthSession::consumeState($state,'login',null);
 denied(fn()=>AuthSession::consumeState($state,'login',null),403);
 $state=AuthSession::state('login',null); $_SESSION['oauth']['expires']=time()-1;
 denied(fn()=>AuthSession::consumeState($state,'login',null),403);
-$state=AuthSession::state('install:synatra',$a);
+$state=AuthSession::state('install:example-bot',$a);
 denied(fn()=>AuthSession::consumeState($state,'login',null),403);
 $store->cleanup();
 AuthSession::start(['storage'=>$directory,'origin'=>'http://127.0.0.1']);

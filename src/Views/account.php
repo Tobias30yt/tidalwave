@@ -14,6 +14,8 @@
     <?php if ($notice): ?><div class="account-notice" role="status"><?= e($notice) ?></div><?php endif ?>
     <span class="eyebrow">SIGNED IN WITH DISCORD</span><h2 class="account-name">@<?= e($user['username']) ?></h2><p class="account-id">Discord ID <?= e($user['id']) ?></p>
     <?php $adminConfig=require dirname(__DIR__,2).'/config/admin.php'; if (AdminStore::allowed($user,$adminConfig)): ?><p><a class="button primary" href="/admin">Open bot control panel <?= icon('arrow') ?></a></p><?php endif ?>
+    <?php if(AdminStore::access($user,$adminConfig,'projects')): ?><p><a class="button secondary" href="/admin/projects">Manage projects</a></p><?php endif ?>
+    <?php if(AdminStore::access($user,$adminConfig,'api')): ?><p><a class="button secondary" href="/admin/api">Manage Reports API</a></p><?php endif ?>
     <?php if ($user['blocked']): ?><div class="review-note"><strong>Account access restricted</strong><p>Please contact TidalWave about verification or installation access.</p></div>
     <?php elseif ($verified): ?><div class="account-notice"><span class="status-dot"></span> Server verification complete</div><p>Your Discord identity is verified. We check your current server membership again before each installation.</p>
     <?php else: ?>
@@ -23,7 +25,7 @@
         <a class="button secondary" href="/account">Refresh verification <?= icon('arrow') ?></a>
     <?php endif ?>
     <div class="account-installations"><h3>Your bot access</h3><?php foreach ($bots as $bot): ?>
-        <div class="account-bot"><div><strong><?= e($bot['name']) ?></strong><p><?= !empty($config['installations'][$bot['id']]['enabled']) ? 'Server installation' : 'Installation not yet available' ?></p></div>
+        <div class="account-bot" id="bot-<?= e($bot['id']) ?>"><div><strong><?= e($bot['name']) ?></strong><p><?= !empty($config['installations'][$bot['id']]['enabled']) ? 'Server installation' : 'Installation not yet available' ?></p></div>
         <?php if ($verified && !empty($config['installations'][$bot['id']]['enabled'])): ?><form method="post" action="/bots/<?= e($bot['id']) ?>/install"><input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>"><button class="button secondary" type="submit">Add to a server <?= icon('diagonal') ?></button></form><?php elseif (!$verified): ?><span class="unavailable">Verification required</span><?php endif ?></div>
     <?php endforeach ?></div>
     <div class="account-actions"><form method="post" action="/auth/logout"><input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>"><button class="button secondary" type="submit">Sign out</button></form>

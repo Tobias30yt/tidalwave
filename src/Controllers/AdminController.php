@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/Services/Auth/bootstrap.php';
 require_once dirname(__DIR__).'/Services/AdminStore.php';
+require_once dirname(__DIR__).'/Services/BotInstallations.php';
 require_once __DIR__.'/AdminContentController.php';
 require_once __DIR__.'/AdminApiController.php';
 require_once __DIR__.'/AdminMailController.php';
@@ -20,14 +21,18 @@ final class AdminController {
             AuthSession::start($auth); $accounts=new AuthStore($auth['storage'],$auth['app_key']);
             $user=isset($_SESSION['user_id'])?$accounts->user($_SESSION['user_id']):null;
             if (!$user || !hash_equals($user['session_key'],$_SESSION['user_key']??'')) throw new AuthError(401,'Sign in with the administrator’s Discord account first.');
-            if (!AdminStore::allowed($user,$admin)) throw new AuthError(403,'This panel is available only to the configured administrator.');
+            $area=explode('/',trim($path,'/'))[1]??'bots';
+            if (!AdminStore::access($user,$admin,$area)) throw new AuthError(403,'Your account does not have access to this administration area.');
             $store=new AdminStore($admin);
             if($method==='POST') { AuthSession::csrf($_POST['csrf']??null);$accounts->limit('admin:'.$user['id'],60,600); }
             if(AdminApiController::dispatch($path,$method,$store,$user))return true;
             if(AdminMailController::dispatch($path,$method,$store,$accounts,$user))return true;
             if(AdminContentController::dispatch($path,$method,$store,$accounts,$user,$admin))return true;
             if ($method==='POST') {
-                if ($path==='/admin/save') {
+                if ($path==='/admin/invitation') {
+                    $id=(string)($_POST['id']??'');(new BotInstallations($store,$auth))->save($id,$_POST,$user['id'],new DiscordClient());
+                    $_SESSION['admin_notice']=($_POST['enabled']??'')==='1'?'Verified-account bot installation enabled.':'Bot installation disabled.';
+                } elseif ($path==='/admin/save') {
                     $id=$store->save(($_POST['id']??'')?:null,$_POST,$_FILES['source']??null,$user['id']);
                     $_SESSION['admin_notice']='Saved. Choose Deploy saved version to apply the source, commands, and environment.';
                 } elseif ($path==='/admin/action') {
@@ -43,7 +48,9 @@ final class AdminController {
             $bot=$selected && $selected!=='new' ? $store->query('SELECT * FROM bots WHERE id=?',[$selected])->fetch(PDO::FETCH_ASSOC) : null;
             $busy=$bot && $store->busy($bot['id']); $notice=$_SESSION['admin_notice']??null; unset($_SESSION['admin_notice']);
             $heartbeat=(int)$store->query('SELECT heartbeat FROM health WHERE id=1')->fetchColumn(); $workerOnline=$heartbeat>time()-45;
-            PageController::render('/admin',compact('managed','bot','busy','notice','workerOnline','user'));
+            $invitation=$bot?(new BotInstallations($store,$auth))->settings($bot['id']):null;
+            $invitationCallback=$bot?$auth['origin'].'/bots/'.$bot['id'].'/install/callback':'';
+            PageController::render('/admin',compact('managed','bot','busy','notice','workerOnline','user','invitation','invitationCallback'));
         } catch(AuthError $error) { http_response_code($error->status); PageController::render('/admin',['panelError'=>$error->getMessage()]); }
         return true;
     }

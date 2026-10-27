@@ -30,6 +30,18 @@ misleading send-success claims while provider/DNS setup is incomplete. Local mai
 
 ## DNS and provider restrictions
 
+For an Oracle outbound TCP-25 exemption, use Console **Help → Request a limit increase**.
+Request an outbound SMTP/port-25 exemption for the tenancy and the VPS's region, stating
+the public IP, legitimate mail use and authenticated submission/no-open-relay setup.
+Keep egress TCP destination port 25 permitted in the applicable NSG/security list;
+an ingress rule does not remove Oracle's separate outbound SMTP restriction.
+Official guidance: https://docs.oracle.com/en-us/iaas/Content/Network/Troubleshoot/vcn_troubleshooting.htm
+and https://docs.oracle.com/en-us/iaas/Content/General/service-limits/create-request.htm .
+If the account is Free Tier and support requests are unavailable, Oracle documents
+Support Chat / Cloud Customer Connect as alternatives. No paid upgrade was performed.
+An SMTP relay is another option but requires separately supplied credentials and DNS.
+After an exemption, retry delivery and finish DNS authentication before enabling external compose.
+
 The active hostname is **tidlawaveenterprises.duckdns.org** (note `tidla`). At inspection:
 
 - A: `130.61.169.52`.

@@ -15,6 +15,35 @@ final class ReportsStore {
         if(!preg_match('/^Bearer (tw_reports_[a-f0-9]{64})$/D',$authorization,$m))throw new AuthError(401,'A registered server credential is required.');
         return $this->store->query('SELECT * FROM api_clients WHERE key_hash=? AND enabled=1',[hash('sha256',$m[1])])->fetch(PDO::FETCH_ASSOC)?:throw new AuthError(401,'Invalid or disabled server credential.');
     }
+    // Website edits affect the stored replica, not the plugin's local SQLite database.
+    public function edit(string $client,string $entity,string $id,?string $json,string $expected,string $actor): void {
+        if(!in_array($entity,['sanction','report'],true)||!preg_match('/^[a-zA-Z0-9:_-]{1,100}$/D',$id))throw new AuthError(400,'Choose sanction/report and a valid record ID (letters, digits, colon, underscore, hyphen).');
+        $encoded=null;
+        if($json!==null){
+            if(strlen($json)>24000)throw new AuthError(413,'Record data is limited to 24 KB.');
+            try{$data=json_decode($json,false,32,JSON_THROW_ON_ERROR);}catch(JsonException){throw new AuthError(400,'Enter a valid JSON object.');}
+            if(!$data instanceof stdClass || !get_object_vars($data))throw new AuthError(400,'Enter a nonempty JSON object.');
+            $encoded=json_encode($data,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
+        }
+        $this->store->db->exec('BEGIN IMMEDIATE');
+        try{
+            if(!$this->store->query('SELECT 1 FROM api_clients WHERE id=?',[$client])->fetchColumn())throw new AuthError(404,'Reports server not found.');
+            $record=$this->store->query('SELECT * FROM reports_records WHERE client_id=? AND entity=? AND record_id=?',[$client,$entity,$id])->fetch(PDO::FETCH_ASSOC);
+            $version=$record?self::version($record):'new';
+            if(!hash_equals($version,$expected))throw new AuthError(409,'This record changed or was removed. Reload the Reports API page before saving.');
+            if($encoded===null){
+                if(!$record)throw new AuthError(404,'Record not found.');
+                $this->store->query('DELETE FROM reports_records WHERE client_id=? AND entity=? AND record_id=?',[$client,$entity,$id]);
+            }else{
+                $this->store->query('INSERT INTO reports_records VALUES(?,?,?,?,?,?) ON CONFLICT(client_id,entity,record_id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at',[$client,$entity,$id,$encoded,$record['sequence']??0,time()]);
+            }
+            $this->store->audit($actor,'reports.'.($encoded===null?'delete':($record?'update':'create')),$client.'/'.$entity.'/'.$id);
+            $this->store->db->exec('COMMIT');
+        }catch(Throwable $e){$this->store->db->exec('ROLLBACK');throw $e;}
+    }
+    public static function version(array $record): string {
+        return hash('sha256',$record['data'].':'.$record['sequence'].':'.$record['updated_at']);
+    }
     public function ingest(array $client,array $events): int {
         if(!array_is_list($events)||count($events)>100)throw new AuthError(400,'Send at most 100 ordered events.');
         $this->store->db->exec('BEGIN IMMEDIATE');

@@ -32,6 +32,10 @@ final class AuthController {
                 self::interaction($config); return true;
             }
             $store=new AuthStore($config['storage'],$config['app_key']);
+            require_once dirname(__DIR__).'/Services/AdminStore.php';require_once dirname(__DIR__).'/Services/BotInstallations.php';
+            $adminConfig=require dirname(__DIR__,2).'/config/admin.php';
+            if(is_file($adminConfig['storage'].'/panel.sqlite'))$config=(new BotInstallations(new AdminStore($adminConfig),$config))->merge($config);
+            unset($config['installations']['synatra']);
             AuthSession::start($config);
             $discord=new DiscordClient();
             $user=isset($_SESSION['user_id']) ? $store->user($_SESSION['user_id']) : null;
@@ -84,6 +88,7 @@ final class AuthController {
             if ($install) {
                 $slug=$matches[1];
                 $catalog=require dirname(__DIR__,2).'/config/bots.php';
+                if(is_file($adminConfig['storage'].'/panel.sqlite'))$catalog=array_merge($catalog,(new AdminStore($adminConfig))->publicBots());
                 if (!in_array($slug,array_column($catalog,'id'),true)) throw new AuthError(404,'This bot is not available.');
                 $store->limit('install:'.$user['id'],10,600);
                 $callback=!empty($matches[2]);

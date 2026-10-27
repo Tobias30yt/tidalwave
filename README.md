@@ -30,6 +30,8 @@ Discord-linked question-and-answer forum. `/verify` now works without a code.
 
 See [mail installation, verified status and migration steps](docs/MAIL.md).
 
+See [Reports database editing and delegated permissions](docs/REPORTS-ADMIN.md).
+
 The `/api` page documents the private Reports API. A site administrator registers each
 server at `/admin/api` and downloads its credential configuration. Servers send ordered,
 JSON event batches to `POST /api/reports/v1/events` over HTTPS using their individual

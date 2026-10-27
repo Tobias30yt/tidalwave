@@ -125,9 +125,15 @@ It updates that named command only, preserving unrelated commands.
 
 ## 4. Enable a full bot when it is ready
 
-For each full bot, use its own application ID, client secret and bot token in
-`auth.local.php` → `installations`. The slug must exist in `config/bots.php`.
-Synatra is initially disabled because its credentials and permissions were not supplied.
+For each hosted bot, open its **Discord server installation** section in `/admin`.
+Enter its application ID, OAuth2 client secret and required permission integer.
+The bot token is reused from `DISCORD_TOKEN` / `BOT_TOKEN` in its saved environment,
+or entered separately in the private installation form. Enable installation and save.
+The website checks the token/application match, Public Bot, Code Grant, the exact
+callback URI, and the client secret against Discord before enabling it.
+Credentials are encrypted in the private admin database using a key derived from
+the existing application key. Blank secret fields preserve saved credentials.
+This does not modify `auth.local.php`. Synatra is explicitly excluded from installation.
 
 In that full bot's Discord Developer Portal settings:
 
@@ -138,14 +144,28 @@ In that full bot's Discord Developer Portal settings:
 - Enable Guild Install only. Disable User Install for these guild-only flows.
 - Configure Public Bot as appropriate for your audience (non-owner installations
   need it enabled). Code-grant enforcement must remain enabled.
-- Register `https://YOUR_DOMAIN/bots/synatra/install/callback` (replace the slug
-  for another bot). Remove unused redirect URIs and other ungated code-exchange
+- Register the exact callback URL shown in the bot panel:
+  `https://YOUR_DOMAIN/bots/HOSTED_BOT_ID/install/callback`.
+  Remove unused redirect URIs and other ungated code-exchange
   backends. Any other backend with the client secret could independently add bots.
 - Set the custom installation link to `https://YOUR_DOMAIN/account`. Do not use
   a public raw invite link in this website's cards.
 - Choose only the permissions actually required by the full bot; set the numeric
   `permissions` string accordingly. No Administrator permission is requested by default.
-- Set the installation's `enabled` to true after testing your real bot.
+- Select **Enable verified-account installation**, then **Validate & save installation**.
+
+The bot must have been deployed before installation becomes available. Users open
+`/bots`, choose **Add to a server**, sign in and complete `/verify` if needed, then
+choose **Add to a server** on their account page. Both the outgoing authorization and
+callback enforce verification and current membership. Disabling the installation
+immediately prevents new requests and outstanding callbacks. The bot's hosting status
+and its Discord installation configuration are independent.
+
+At the 2026-10-27 deployment Nexora's application ID was detected, but its OAuth2
+client secret was not supplied and Code Grant was disabled. Its installation remains
+disabled until those steps are completed. Tests cover credential encryption, setup
+validation, exclusion of Synatra, disabled/draft bots, and the verification gate;
+a real Nexora installation cannot yet be tested end to end.
 
 The server checks this guard on the way to Discord and again at the callback.
 Changing the bot's Discord setting away from code-grant enforcement can expose

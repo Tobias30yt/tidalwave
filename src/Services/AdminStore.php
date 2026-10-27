@@ -37,6 +37,11 @@ final class AdminStore {
         if (!preg_match('/^[a-f0-9]{32}$/D',$id)) throw new AuthError(404,'Bot not found.');
         return $this->query('SELECT * FROM bots WHERE id=?',[$id])->fetch(PDO::FETCH_ASSOC) ?: throw new AuthError(404,'Bot not found.');
     }
+    public static function access(?array $user,array $config,string $area): bool {
+        if(self::allowed($user,$config))return true;
+        if(!$user || $user['blocked'] || empty($user['page_admin']))return false;
+        return $area==='projects' || ($area==='api' && !empty($user['api_access']));
+    }
     public function busy(string $id): bool { return (bool)$this->query("SELECT 1 FROM jobs WHERE bot_id=? AND state IN ('queued','running')",[$id])->fetchColumn(); }
     public static function environment(string $text): string {
         if (strlen($text)>16384 || str_contains($text,"\0")) throw new AuthError(400,'The environment is limited to 16 KB.');

@@ -5,6 +5,7 @@ final class InstallGate {
     public function check(string $userId, string $slug): array {
         $user=$this->store->user($userId);
         if (!$user || !$this->store->verified($user,$this->config)) throw new AuthError(403,'Verify your Discord account in our server before installing bots.');
+        if($slug==='synatra')throw new AuthError(409,'Synatra is not available for installation.');
         $bot=$this->config['installations'][$slug] ?? null;
         if (!$bot || !($bot['enabled'] ?? false)) throw new AuthError(409,'This bot is not available for installation yet.');
         if (!discord_id($bot['client_id'] ?? null) || empty($bot['client_secret']) || empty($bot['bot_token'])

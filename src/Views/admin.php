@@ -29,6 +29,16 @@
 </fieldset><div class="admin-save"><button class="button primary" type="submit" <?= $busy?'disabled':'' ?>><?= $bot?'Save changes':'Create bot' ?></button><span>Save first, then deploy.</span></div>
 </form>
 <?php if($bot): ?>
+<?php if(strtolower(trim($bot['name']))!=='synatra'): ?>
+<section class="admin-runtime"><h2>Discord server installation</h2><p>Allow verified website accounts to add this bot to their Discord servers.</p>
+<ol><li>Open this application in the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>.</li><li>Under Bot, enable <strong>Public Bot</strong> and <strong>Requires OAuth2 Code Grant</strong>.</li><li>Under OAuth2, add this exact redirect URL: <code><?= e($invitationCallback) ?></code></li><li>Copy the OAuth2 Client Secret into the private field below. The existing DISCORD_TOKEN environment value is reused.</li></ol>
+<form class="admin-form" method="post" action="/admin/invitation"><input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>"><input type="hidden" name="id" value="<?= e($bot['id']) ?>">
+<label class="delete-confirm"><input type="checkbox" name="enabled" value="1" <?= !empty($invitation['enabled'])?'checked':'' ?>> Enable verified-account installation</label>
+<div class="admin-field-grid"><label>Application ID<input name="client_id" inputmode="numeric" value="<?= e($invitation['client_id']??'') ?>" maxlength="20"></label><label>Bot permissions integer<input name="permissions" inputmode="numeric" value="<?= e($invitation['permissions']??'0') ?>" maxlength="20"><small>Use the permissions needed by this bot. 0 requests no additional permissions.</small></label></div>
+<label>OAuth2 Client Secret<input type="password" name="client_secret" maxlength="512" autocomplete="new-password"><small>Leave empty to preserve a saved secret. Credentials are encrypted and never displayed.</small></label>
+<label>Bot token (optional when DISCORD_TOKEN is saved)<input type="password" name="bot_token" maxlength="512" autocomplete="new-password"></label>
+<button class="button primary">Validate &amp; save installation</button></form><p class="admin-help">Status: <?= !empty($invitation['enabled'])?'Enabled':'Not enabled' ?>. The bot must have been deployed before it can be installed.</p></section>
+<?php endif ?>
 <section class="admin-runtime"><div class="admin-section-heading"><div><span class="eyebrow">RUNTIME / REVISION <?= (int)$bot['revision'] ?></span><h2><?= e(ucfirst($bot['status'])) ?></h2></div><span class="badge">512 MB · 1 CPU</span></div>
 <form method="post" action="/admin/action" class="button-row"><input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>"><input type="hidden" name="id" value="<?= e($bot['id']) ?>"><?php foreach(['deploy'=>'Deploy saved version','start'=>'Start','stop'=>'Stop','restart'=>'Restart'] as $action=>$label): ?><button type="submit" name="action" value="<?= $action ?>" class="button <?= $action==='deploy'?'primary':'secondary' ?>" <?= $busy?'disabled':'' ?>><?= $label ?></button><?php endforeach ?></form>
 <p class="admin-help">Deploy applies saved settings and replaces the previous container. Container files survive stops and restarts; deployment replaces them with the uploaded source. Keep a copy of persistent bot data before deploying.</p>

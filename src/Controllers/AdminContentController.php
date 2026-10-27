@@ -16,7 +16,13 @@ final class AdminContentController {
                     if($action==='delete'&&($_POST['confirm']??'')!=='delete')throw new AuthError(400,'Confirm account deletion.');
                     if($mailConfig['enabled'])(new MailStore($store,$mailConfig,$authConfig['app_key']))->disable($target);
                 }
-                if($action==='block')$accounts->revoke($target,true);
+                if($action==='permissions'){
+                    if(!$accounts->user($target))throw new AuthError(404,'Account not found.');
+                    $pageAdmin=($_POST['page_admin']??'')==='1';$apiAccess=($_POST['api_access']??'')==='1';
+                    if($apiAccess&&!$pageAdmin)throw new AuthError(400,'API access requires the page administrator role.');
+                    $accounts->query('INSERT INTO account_permissions(user_id,page_admin,api_access) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET page_admin=excluded.page_admin,api_access=excluded.api_access',[$target,(int)$pageAdmin,(int)$apiAccess]);
+                }
+                elseif($action==='block')$accounts->revoke($target,true);
                 elseif($action==='unblock')$accounts->revoke($target,false);
                 elseif($action==='delete'){
                     if(($_POST['confirm']??'')!=='delete')throw new AuthError(400,'Confirm account deletion.');
@@ -42,6 +48,7 @@ final class AdminContentController {
             $where=' WHERE username LIKE ? OR id LIKE ?';$params=['%'.$search.'%','%'.$search.'%'];
             $users=$accounts->query('SELECT * FROM ('.$sql.')'.$where.' ORDER BY created_at DESC,id LIMIT 50 OFFSET '.(($page-1)*50),$params)->fetchAll(PDO::FETCH_ASSOC);
             $total=(int)$accounts->query('SELECT count(*) FROM ('.$sql.')'.$where,$params)->fetchColumn();
+            foreach($users as &$entry){$permissions=$accounts->user($entry['id']);$entry['page_admin']=$permissions['page_admin']??0;$entry['api_access']=$permissions['api_access']??0;}unset($entry);
             PageController::render('/admin/users',compact('users','total','page','search','notice','user','admin'));return true;
         }
         if($path!=='/admin/projects')throw new AuthError(404,'Page not found.');

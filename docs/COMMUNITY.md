@@ -18,7 +18,7 @@ or bypass the existing verification gate for installing configured full bots.
 
 ## Projects
 
-Only the configured administrator can access `/admin/projects`. Projects can contain
+The owner and accounts granted Page administrator in `/admin/users` can access `/admin/projects`. Projects can contain
 a public GitHub repository URL, a source ZIP, release attachments, or a combination.
 GitHub import reads repository name, description, language, stars, and the latest
 published release through the public GitHub REST API. It uses a fixed API host,

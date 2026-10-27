@@ -10,6 +10,10 @@ final class AuthStore {
             id TEXT PRIMARY KEY, username TEXT NOT NULL, created_at INTEGER NOT NULL,
             verified_at INTEGER, verified_guild TEXT, blocked INTEGER NOT NULL DEFAULT 0, session_key TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS account_permissions (
+            user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            page_admin INTEGER NOT NULL DEFAULT 0, api_access INTEGER NOT NULL DEFAULT 0
+        );
         CREATE TABLE IF NOT EXISTS challenges (
             user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
             digest TEXT NOT NULL UNIQUE, expires_at INTEGER NOT NULL
@@ -26,7 +30,7 @@ final class AuthStore {
         $statement = $this->db->prepare($sql); $statement->execute($params); return $statement;
     }
     public function user(string $id): ?array {
-        return $this->query('SELECT * FROM users WHERE id = ?', [$id])->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $this->query('SELECT u.*,COALESCE(p.page_admin,0) AS page_admin,COALESCE(p.api_access,0) AS api_access FROM users u LEFT JOIN account_permissions p ON p.user_id=u.id WHERE u.id = ?', [$id])->fetch(PDO::FETCH_ASSOC) ?: null;
     }
     public function signIn(array $profile): array {
         if (!discord_id($profile['id'] ?? null) || !is_string($profile['username'] ?? null) || strlen($profile['username']) > 128 || ($profile['bot'] ?? false)) {
