@@ -11,6 +11,11 @@ final class AdminContentController {
                 if(!discord_id($target))throw new AuthError(400,'Invalid account ID.');
                 if(hash_equals($admin['owner_id'],$target))throw new AuthError(403,'The administrator account cannot be deleted or blocked here.');
                 if(!$accounts->user($target) && !$accounts->query('SELECT 1 FROM blocked_accounts WHERE id=?',[$target])->fetchColumn())throw new AuthError(404,'Account not found.');
+                if(in_array($action,['block','delete'],true)){
+                    require_once dirname(__DIR__).'/Services/MailStore.php';$mailConfig=require dirname(__DIR__,2).'/config/mail.php';$authConfig=require dirname(__DIR__,2).'/config/auth.php';
+                    if($action==='delete'&&($_POST['confirm']??'')!=='delete')throw new AuthError(400,'Confirm account deletion.');
+                    if($mailConfig['enabled'])(new MailStore($store,$mailConfig,$authConfig['app_key']))->disable($target);
+                }
                 if($action==='block')$accounts->revoke($target,true);
                 elseif($action==='unblock')$accounts->revoke($target,false);
                 elseif($action==='delete'){

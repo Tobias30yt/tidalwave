@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROUTES = ['/', '/about', '/bots', '/projects', '/forum', '/api', '/contact', '/account', '/legal',
           '/legal/privacy', '/legal/terms', '/legal/notice',
           '/legal/synatra/privacy', '/legal/synatra/terms']
+AUTH_REQUIRED_ROUTES = {'/mail', '/admin/api'}
 
 class Page(HTMLParser):
     def __init__(self, html):
@@ -59,6 +60,9 @@ for route, page in pages.items():
         if target.netloc != urlsplit(BASE).netloc: continue
         if re.fullmatch(r'/forum/thread/[0-9]+|/projects/download/[a-f0-9]{32}', target.path):
             assert request(target.path)[0] == 200, ('dynamic public link', link)
+            continue
+        if target.path in AUTH_REQUIRED_ROUTES:
+            assert request(target.path)[0] in (401, 503), ('protected route or unconfigured auth', link)
             continue
         assert target.path in pages, (route, 'unrecognized route', link)
         if target.fragment:

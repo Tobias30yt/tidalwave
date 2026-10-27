@@ -26,6 +26,25 @@ The [community features](docs/COMMUNITY.md) add automatically published hosted b
 projects with GitHub import and release downloads, account administration, and a
 Discord-linked question-and-answer forum. `/verify` now works without a code.
 
+## Reports API and Tidalwave Mail
+
+See [mail installation, verified status and migration steps](docs/MAIL.md).
+
+The `/api` page documents the private Reports API. A site administrator registers each
+server at `/admin/api` and downloads its credential configuration. Servers send ordered,
+JSON event batches to `POST /api/reports/v1/events` over HTTPS using their individual
+Bearer credential. Credentials are stored hashed, can be rotated or disabled, and there
+is no public read endpoint.
+
+`/mail` is a Discord-authenticated mailbox for users whose accounts an administrator
+has enabled at `/admin/mail`. Each mailbox uses its own Stalwart credential; mail data
+is not accessible to the management identity. The private service endpoint must remain
+bound to `127.0.0.1:18080`. Private settings belong in ignored `config/mail.local.php`,
+never in Git. External delivery is disabled unless `external_delivery` is explicitly
+enabled after mail DNS, TLS, reverse DNS, and provider port-25 policy are verified.
+DuckDNS's update API supports address and TXT updates but not custom MX records; use a
+domain/DNS provider that supports the records required for reliable public mail.
+
 ## Run locally
 
 From this directory, with PHP 8.3 on your PATH:
@@ -48,9 +67,10 @@ when testing account features. PHP runtimes are not included in this repository.
 | `/about` | Identity, work, approach and vision |
 | `/bots` | Data-driven bot directory, initially Synatra |
 | `/projects` | Data-driven software directory; empty until verified projects are added |
-| `/api` | Coming-soon page only; no endpoints or playground |
+| `/api` | Reports API documentation; authenticated event-ingestion endpoint |
 | `/contact` | Email, copy action and optional configured social links |
 | `/account` | Discord login, server verification, gated bot installation and account deletion |
+| `/mail` | Private Discord-authenticated mailbox for administrator-enabled accounts |
 | `/legal` | Scoped legal document directory |
 | `/legal/privacy`, `/legal/terms`, `/legal/notice` | Clearly marked TidalWave placeholders |
 | `/legal/synatra/privacy`, `/legal/synatra/terms` | Preserved Synatra drafts |
@@ -61,6 +81,9 @@ when testing account features. PHP runtimes are not included in this repository.
   verification. Synatra's release status was not supplied and is marked pending.
 - `config/auth.example.php`: private configuration template for identity, verification
   and full-bot installation. Copy to ignored `config/auth.local.php`; never commit secrets.
+- `config/mail.php`: safe mail defaults. Keep management credentials in the ignored,
+  server-only `config/mail.local.php`; do not enable external delivery before DNS and
+  reverse-DNS checks pass.
 - `config/projects.php`: add only verified project entries. Each supports `name`,
   `description`, `technologies` (array), `status`, nullable `github_url` and
   nullable `documentation_url`.

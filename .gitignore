@@ -6,6 +6,7 @@
 /config/auth.local.php.*
 /config/admin.local.php
 /config/admin.local.php.*
+/config/mail.local.php*
 /storage/admin/
 __pycache__/
 /storage/auth/*

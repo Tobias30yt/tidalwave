@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/Services/Auth/bootstrap.php';
 require_once dirname(__DIR__).'/Services/AdminStore.php';
 require_once __DIR__.'/AdminContentController.php';
+require_once __DIR__.'/AdminApiController.php';
+require_once __DIR__.'/AdminMailController.php';
 final class AdminController {
     public static function dispatch(string $path): bool {
         if ($path!=='/admin' && !str_starts_with($path,'/admin/')) return false;
@@ -21,6 +23,8 @@ final class AdminController {
             if (!AdminStore::allowed($user,$admin)) throw new AuthError(403,'This panel is available only to the configured administrator.');
             $store=new AdminStore($admin);
             if($method==='POST') { AuthSession::csrf($_POST['csrf']??null);$accounts->limit('admin:'.$user['id'],60,600); }
+            if(AdminApiController::dispatch($path,$method,$store,$user))return true;
+            if(AdminMailController::dispatch($path,$method,$store,$accounts,$user))return true;
             if(AdminContentController::dispatch($path,$method,$store,$accounts,$user,$admin))return true;
             if ($method==='POST') {
                 if ($path==='/admin/save') {

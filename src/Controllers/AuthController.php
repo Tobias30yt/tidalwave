@@ -68,6 +68,11 @@ final class AuthController {
             if (!$user) throw new AuthError(401,'Sign in with Discord before continuing.');
             if ($path==='/auth/delete') {
                 if (($_POST['confirm'] ?? null)!=='delete') throw new AuthError(400,'Confirm account deletion before continuing.');
+                $mailConfig=require dirname(__DIR__,2).'/config/mail.php';
+                if($mailConfig['enabled']){
+                    require_once dirname(__DIR__).'/Services/AdminStore.php';require_once dirname(__DIR__).'/Services/MailStore.php';
+                    (new MailStore(new AdminStore(require dirname(__DIR__,2).'/config/admin.php'),$mailConfig,$config['app_key']))->disable($user['id']);
+                }
                 $store->query('DELETE FROM users WHERE id=?',[$user['id']]);
                 AuthSession::logout(); self::redirect('/account');
             }

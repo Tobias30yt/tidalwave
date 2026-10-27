@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/assets/css/site.css?v=<?= e($app['asset_version']) ?>">
     <?php if(str_starts_with($view,'admin') || str_starts_with($view,'forum')): ?><link rel="stylesheet" href="/assets/css/admin.css?v=<?= e($app['asset_version']) ?>"><?php endif ?>
     <script src="/assets/js/site.js?v=<?= e($app['asset_version']) ?>" defer></script>
+    <?php if(in_array($view,['mail','admin-mail'],true)): ?><link rel="stylesheet" href="/assets/css/mail.css?v=<?= e($app['asset_version']) ?>"><?php endif ?>
 </head>
 <body class="page-<?= e($view) ?>">
 <a class="skip-link" href="#main">Skip to content</a>

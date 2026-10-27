@@ -24,6 +24,10 @@ try {
     require dirname(__DIR__).'/src/Controllers/AdminController.php';
     require dirname(__DIR__).'/src/Controllers/ForumController.php';
     require dirname(__DIR__).'/src/Controllers/CatalogController.php';
+    require dirname(__DIR__).'/src/Controllers/ReportsApiController.php';
+    if (ReportsApiController::dispatch($path)) exit;
+    require dirname(__DIR__).'/src/Controllers/MailController.php';
+    if (MailController::dispatch($path)) exit;
     if (AdminController::dispatch($path)) exit;
     if (ForumController::dispatch($path)) exit;
     if (CatalogController::dispatch($path)) exit;
